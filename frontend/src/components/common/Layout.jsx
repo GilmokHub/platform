@@ -1,10 +1,20 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
+import PasskeyModal from './PasskeyModal'
+import { PASSKEY_STORAGE_KEY } from '../../api/client'
 
 export default function Layout() {
   const location = useLocation()
 
+  const handleLogout = () => {
+    if (window.confirm('PassKey 인증을 해제하고 콘솔을 잠그시겠습니까?')) {
+      sessionStorage.removeItem(PASSKEY_STORAGE_KEY)
+      window.location.reload()
+    }
+  }
+
   return (
     <div className="admin-layout">
+      <PasskeyModal />
       <div className="admin-main">
         <header className="admin-header d-flex align-items-center justify-content-between px-4 py-2 border-bottom bg-white">
           <div className="d-flex align-items-center gap-4">
@@ -36,6 +46,14 @@ export default function Layout() {
               <span>고객사 데모 (3030)</span>
               <span className="small">→</span>
             </a>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn btn-outline-danger btn-sm d-flex align-items-center gap-1"
+              title="PassKey 삭제 및 콘솔 잠금"
+            >
+              <span>인증 해제</span>
+            </button>
           </div>
         </header>
         <main className="admin-content p-4">
