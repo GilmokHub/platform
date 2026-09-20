@@ -9,15 +9,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import kr.gilmok.platform.policy.dto.PolicyCacheDto;
 import kr.gilmok.platform.policy.repository.PolicyCacheRepository;
 import kr.gilmok.platform.policy.vo.BlockRules;
-import kr.gilmok.platform.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -452,10 +449,6 @@ public class PolicyFilter extends OncePerRequestFilter {
     }
 
     private String resolveClientKey(String clientIp) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof CustomUserDetails details) {
-            return "u:" + details.user().id();
-        }
         return "ip:" + (clientIp != null ? clientIp : "unknown");
     }
 

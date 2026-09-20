@@ -5,7 +5,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kr.gilmok.platform.global.dto.ApiResponse;
-import kr.gilmok.platform.global.security.CustomUserDetails;
 import kr.gilmok.platform.policy.dto.PolicyCacheDto;
 import kr.gilmok.platform.policy.filter.PolicyFilter;
 import kr.gilmok.platform.policy.repository.PolicyCacheRepository;
@@ -17,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -39,15 +37,11 @@ public class QueueController {
     @PostMapping("/enter")
     @Operation(summary = "대기열 진입", description = "고객사 식별키(clientKey)와 eventId로 대기열에 진입하거나 평상시 즉시 통과합니다.")
     public ResponseEntity<ApiResponse<QueueEnterResponse>> enter(
-            @AuthenticationPrincipal CustomUserDetails principal,
             @Valid @RequestBody QueueEnterRequest request,
             HttpServletRequest httpRequest) {
 
-        Long userId = (principal != null && principal.user() != null)
-                ? principal.user().id()
-                : (request.getUserId() != null ? request.getUserId() : 0L);
-
-        String username = (principal != null) ? principal.getUsername() : "user_" + userId;
+        Long userId = request.getUserId() != null ? request.getUserId() : 0L;
+        String username = "user_" + userId;
         String eventId = request.getEventId();
 
         // 1. 정책 조회 (PolicyFilter attribute 또는 Redis 직접 조회)
@@ -88,7 +82,6 @@ public class QueueController {
     @GetMapping("/status")
     @Operation(summary = "대기열 상태 조회", description = "대기 순번 및 대기열 통과 시 입장 토큰을 조회합니다.")
     public ResponseEntity<ApiResponse<QueueStatusResponse>> getStatus(
-            @AuthenticationPrincipal CustomUserDetails principal,
             @RequestParam String eventId,
             @RequestParam(required = false) String queueKey,
             @RequestHeader(value = "X-Queue-Key", required = false) String queueKeyHeader,
@@ -105,11 +98,9 @@ public class QueueController {
             ));
         }
 
-        Long effectiveUserId = (principal != null && principal.user() != null)
-                ? principal.user().id()
-                : (userId != null ? userId : 0L);
+        Long effectiveUserId = userId != null ? userId : 0L;
 
-        String username = (principal != null) ? principal.getUsername() : "user_" + effectiveUserId;
+        String username = "user_" + effectiveUserId;
 
         if (effectiveQueueKey == null || effectiveQueueKey.isBlank()) {
             return ResponseEntity.ok(ApiResponse.success(
