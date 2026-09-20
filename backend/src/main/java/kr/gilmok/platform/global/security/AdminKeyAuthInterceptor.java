@@ -26,7 +26,10 @@ public class AdminKeyAuthInterceptor implements HandlerInterceptor {
     public static final String ATTR_TENANT_CODE = "tenantCode";
     private static final String ERROR_RESPONSE_BODY = "{\"status\":\"error\",\"code\":\"A001\",\"message\":\"유효하지 않은 관리자 PassKey입니다.\"}";
 
-    private String secretKey;
+    /**
+     * 고객사 및 마스터 관리자 PassKey 매핑 (application.yml: app.admin.keys)
+     * 예: master -> gmk_master_..., demo -> gmk_demo_...
+     */
     private Map<String, String> keys = new HashMap<>();
 
     @Override
@@ -40,7 +43,7 @@ public class AdminKeyAuthInterceptor implements HandlerInterceptor {
             return reject(request, response);
         }
 
-        // 1. 고객사별 다중 키(keys Map) 대조 및 테넌트 식별 (빈 값 매칭 방지)
+        // 고객사/마스터별 PassKey 대조 및 테넌트 식별 (빈 값 매칭 방지)
         String matchedTenant = null;
         if (keys != null && !keys.isEmpty()) {
             for (Map.Entry<String, String> entry : keys.entrySet()) {
@@ -52,16 +55,11 @@ public class AdminKeyAuthInterceptor implements HandlerInterceptor {
             }
         }
 
-        // 2. 단일 secretKey Fallback 대조 (빈 값 매칭 방지)
-        if (matchedTenant == null && secretKey != null && !secretKey.isBlank() && clientKey.equals(secretKey)) {
-            matchedTenant = "default";
-        }
-
         if (matchedTenant == null) {
             return reject(request, response);
         }
 
-        // 3. 인가 성공: 테넌트 식별값 주입
+        // 인가 성공: 식별된 테넌트 코드 주입 (master, demo 등)
         request.setAttribute(ATTR_TENANT_CODE, matchedTenant);
         String adminUserId = request.getHeader(HEADER_ADMIN_USER_ID);
         log.info("[AdminAuth] 관리자 인가 성공 - Tenant: {}, AdminId: {}, URI: {}",

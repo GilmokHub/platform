@@ -47,8 +47,8 @@ auth:
 
 app:
   admin:
-    secret-key: ${PLATFORM_ADMIN_SECRET:}
     keys:
+      master: ${PLATFORM_ADMIN_KEY_MASTER:}
       demo: ${PLATFORM_ADMIN_KEY_DEMO:}
       client2: ${PLATFORM_ADMIN_KEY_CLIENT2:}
 
