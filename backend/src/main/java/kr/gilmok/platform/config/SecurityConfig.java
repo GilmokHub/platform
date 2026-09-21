@@ -1,7 +1,6 @@
 package kr.gilmok.platform.config;
 
 import kr.gilmok.platform.global.security.CustomAuthenticationEntryPoint;
-import kr.gilmok.platform.global.security.JwtAuthenticationFilter;
 import kr.gilmok.platform.policy.filter.PolicyFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,7 +24,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final PolicyFilter policyFilter;
 
@@ -48,13 +46,12 @@ public class SecurityConfig {
                         .requestMatchers("/events/**").permitAll()
                         .requestMatchers("/actuator/prometheus").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
-                        .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/admin/**").permitAll()
                         .requestMatchers("/error").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterAfter(policyFilter, JwtAuthenticationFilter.class);
+                .addFilterBefore(policyFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

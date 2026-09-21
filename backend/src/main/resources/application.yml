@@ -45,6 +45,13 @@ reservation:
 auth:
   api-docs-url: ${AUTH_API_DOCS_URL:http://localhost:9000/v3/api-docs}
 
+app:
+  admin:
+    keys:
+      master: ${PLATFORM_ADMIN_KEY_MASTER:}
+      demo: ${PLATFORM_ADMIN_KEY_DEMO:}
+      client2: ${PLATFORM_ADMIN_KEY_CLIENT2:}
+
 management:
   tracing:
     sampling:

@@ -1,26 +1,22 @@
 package kr.gilmok.platform.policy.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import kr.gilmok.platform.global.dto.ApiResponse;
 import kr.gilmok.platform.policy.dto.PolicyHistoryResponse;
 import kr.gilmok.platform.policy.dto.PolicyResponse;
 import kr.gilmok.platform.policy.dto.PolicyUpdateRequest;
 import kr.gilmok.platform.policy.service.PolicyService;
-import kr.gilmok.platform.global.dto.ApiResponse;
-import kr.gilmok.platform.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/admin/events/{eventId}")
 @RequiredArgsConstructor
 @Tag(name = "Admin Policy", description = "관리자 이벤트 정책 관리 API")
-@SecurityRequirement(name = "bearerAuth")
 public class AdminPolicyController {
 
     private final PolicyService policyService;
@@ -60,12 +56,12 @@ public class AdminPolicyController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "동시 수정 충돌")
     })
     public ApiResponse<PolicyResponse> updatePolicy(
-            @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long eventId,
+            @RequestHeader(value = "X-Admin-User-Id", required = false) String adminUserId,
             @Valid @RequestBody PolicyUpdateRequest request) {
 
-        Long updatedByUserId = principal.user().id();
-        String updatedByUsername = principal.user().username();
+        Long updatedByUserId = parseAdminId(adminUserId);
+        String updatedByUsername = (adminUserId != null && !adminUserId.isBlank()) ? adminUserId : "admin";
         PolicyResponse response = policyService.updatePolicy(eventId, request, updatedByUserId, updatedByUsername);
         return ApiResponse.success(response);
     }
@@ -78,13 +74,24 @@ public class AdminPolicyController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "동시 수정 충돌")
     })
     public ApiResponse<PolicyResponse> rollbackPolicy(
-            @AuthenticationPrincipal CustomUserDetails principal,
             @PathVariable Long eventId,
-            @PathVariable Long historyId
+            @PathVariable Long historyId,
+            @RequestHeader(value = "X-Admin-User-Id", required = false) String adminUserId
     ) {
-        Long rollbackByUserId = principal.user().id();
-        String rollbackByUsername = principal.user().username();
+        Long rollbackByUserId = parseAdminId(adminUserId);
+        String rollbackByUsername = (adminUserId != null && !adminUserId.isBlank()) ? adminUserId : "admin";
         PolicyResponse response = policyService.rollbackPolicy(eventId, historyId, rollbackByUserId, rollbackByUsername);
         return ApiResponse.success(response);
+    }
+
+    private Long parseAdminId(String adminUserId) {
+        if (adminUserId == null || adminUserId.isBlank()) {
+            return 1L;
+        }
+        try {
+            return Long.parseLong(adminUserId);
+        } catch (NumberFormatException e) {
+            return 1L;
+        }
     }
 }
