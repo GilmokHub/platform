@@ -48,6 +48,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/admin/**").permitAll()
+                        .requestMatchers("/.well-known/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().permitAll()
                 )
