@@ -91,3 +91,10 @@ jar {
 bootJar {
     archiveFileName = 'platform-backend.jar'
 }
+sourceSets {
+    test {
+        java {
+            exclude "kr/gilmok/api/**"
+        }
+    }
+}
