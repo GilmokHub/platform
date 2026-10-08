@@ -46,6 +46,11 @@ auth:
   api-docs-url: ${AUTH_API_DOCS_URL:http://localhost:9000/v3/api-docs}
 
 app:
+  jwt:
+    issuer: https://platform.gilmok.kr
+    key-id: gilmok-key-2026a
+    private-key: ${PLATFORM_JWT_PRIVATE_KEY:}
+    public-key: ${PLATFORM_JWT_PUBLIC_KEY:}
   admin:
     keys:
       master: ${PLATFORM_ADMIN_KEY_MASTER:}
