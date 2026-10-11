@@ -13,16 +13,4 @@ public class QueueStatusResponse {
     private final long etaSeconds;
     private final long pollAfterMs;
     private final String admissionToken;
-
-    public long getRank() {
-        return position;
-    }
-
-    public long getExpectedWaitSeconds() {
-        return etaSeconds;
-    }
-
-    public String getToken() {
-        return admissionToken;
-    }
 }
