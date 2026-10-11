@@ -36,8 +36,12 @@ public class QueueLoggingFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         // /queue 로 시작하지 않는 비즈니스 요청은 로깅을 건너뜁니다.
+        String servletPath = request.getServletPath();
+        if (servletPath != null && !servletPath.isBlank()) {
+            return !servletPath.startsWith("/queue");
+        }
         String path = request.getRequestURI();
-        return !path.startsWith("/queue");
+        return !path.contains("/queue");
     }
 
     @Override
