@@ -67,11 +67,11 @@ export function useGilmokQueue(optionsOrClientKey, legacyQueueUrl) {
 
         const isAdmitted = data.status === 'ADMITTABLE' || data.status === 'ADMITTED';
         if (isAdmitted) {
-          const token = data.token || data.admissionToken;
-          setAdmissionToken(token);
+          const admittedToken = data.admissionToken || data.token;
+          setAdmissionToken(admittedToken);
           setIsWaiting(false);
           if (onAdmittedRef.current) {
-            onAdmittedRef.current({ token, eventId: currentEventId, queueKey });
+            onAdmittedRef.current({ admissionToken: admittedToken, eventId: currentEventId, queueKey });
           }
           return;
         }
@@ -99,7 +99,7 @@ export function useGilmokQueue(optionsOrClientKey, legacyQueueUrl) {
           const mockToken = "FAIL_OPEN_DIRECT_TOKEN";
           setAdmissionToken(mockToken);
           if (onAdmittedRef.current) {
-            onAdmittedRef.current({ token: mockToken, eventId: currentEventId, queueKey });
+            onAdmittedRef.current({ admissionToken: mockToken, eventId: currentEventId, queueKey });
           }
         } else {
           pollTimerRef.current = setTimeout(pollStatus, pollIntervalRef.current);
@@ -145,13 +145,13 @@ export function useGilmokQueue(optionsOrClientKey, legacyQueueUrl) {
 
       // 1. 평상시: 대기열이 필요 없는 경우(directPass 또는 즉시 통과)
       if (data.directPass || data.status === 'ADMITTABLE') {
-        const token = data.token || data.admissionToken;
-        setAdmissionToken(token);
+        const admittedToken = data.admissionToken || data.token;
+        setAdmissionToken(admittedToken);
         setIsWaiting(false);
         if (onAdmitted) {
-          onAdmitted({ token, eventId, queueKey: data.queueKey });
+          onAdmitted({ admissionToken: admittedToken, eventId, queueKey: data.queueKey });
         }
-        return { directPass: true, token };
+        return { directPass: true, admissionToken: admittedToken };
       }
 
       // 2. 트래픽 집중 시: 대기열 진입
@@ -172,9 +172,9 @@ export function useGilmokQueue(optionsOrClientKey, legacyQueueUrl) {
         setAdmissionToken(mockToken);
         setIsWaiting(false);
         if (onAdmitted) {
-          onAdmitted({ token: mockToken, eventId, queueKey: "FAIL_OPEN" });
+          onAdmitted({ admissionToken: mockToken, eventId, queueKey: "FAIL_OPEN" });
         }
-        return { directPass: true, token: mockToken };
+        return { directPass: true, admissionToken: mockToken };
       } else {
         setError("대기열 서비스에 연결할 수 없습니다.");
         return { error: e };
