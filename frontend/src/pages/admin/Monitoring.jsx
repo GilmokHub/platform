@@ -10,7 +10,7 @@ export default function Monitoring() {
       .trim()
       .replace(/\/+$/, '')
 
-  const DASH_UID = (import.meta.env.VITE_GRAFANA_DASHBOARD_UID || '').trim()
+  const DASH_UID = (import.meta.env.VITE_GRAFANA_DASHBOARD_UID || 'adtwdpl').trim()
 
   useEffect(() => {
     const getLogs = async () => {
@@ -59,9 +59,9 @@ export default function Monitoring() {
           <div className="border rounded overflow-hidden">
             {GRAFANA_BASE_URL&& DASH_UID ? (
                 <iframe
-                    src={`${GRAFANA_BASE_URL}/d/${DASH_UID}/jvm-micrometer?orgId=1&kiosk&refresh=30s`}
+                    src={`${GRAFANA_BASE_URL}/d/${DASH_UID}?orgId=1&kiosk&refresh=10s`}
                     width="100%"
-                    height="480"
+                    height="720"
                     frameBorder="0"
                     title="Grafana Dashboard"
                 />

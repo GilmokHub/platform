@@ -65,6 +65,9 @@ management:
     web:
       exposure:
         include: health, info, prometheus, metrics # 메트릭은 항상 노출
+  metrics:
+    tags:
+      application: ${spring.application.name}
 resilience4j:
   circuitbreaker:
     instances:

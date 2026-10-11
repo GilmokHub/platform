@@ -44,7 +44,8 @@ public class PrometheusMetricsService {
     }
 
     public String getCurrentErrorRate() {
-        String promQl = "sum(rate(http_server_requests_seconds_count{status=~\"5..\"}[1m])) / sum(rate(http_server_requests_seconds_count[1m]))";
+        String promQl = "sum(rate(http_server_requests_seconds_count{job=\"demo-backend\", status=~\"5..\"}[1m])) " +
+                "/ sum(rate(http_server_requests_seconds_count{job=\"demo-backend\"}[1m]))";
 
         try {
             // 💡 [수정] uriBuilder 내부의 중괄호 파싱 충돌을 막기 위해
