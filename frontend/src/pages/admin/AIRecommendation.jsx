@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../../api/client'
 import { getPolicy } from '../../api/policy'
 
-const base = (eventId) => (eventId ? `/admin/events/${eventId}` : '/admin')
+const base = (eventId) => (eventId ? `/events/${eventId}` : '/events')
 
 const DEFAULT_SPEC = {
     cpuCores: '',
