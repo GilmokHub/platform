@@ -38,7 +38,7 @@ export default function Monitoring() {
           <button
             type="button"
             className="btn btn-primary btn-sm"
-            onClick={() => navigate(`/admin/events/${eventId}/ai-recommendation`)}
+            onClick={() => navigate(`/events/${eventId}/ai-recommendation`)}
           >
             AI 트래픽 분석 및 정책 추천
           </button>
