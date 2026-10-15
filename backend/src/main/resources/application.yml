@@ -59,6 +59,9 @@ management:
       exposure:
         include: health, info, prometheus, metrics # 메트릭은 항상 노출
   metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true # p95, p99 백분위수 히스토그램 활성화
     tags:
       application: ${spring.application.name}
 resilience4j:
