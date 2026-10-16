@@ -19,16 +19,20 @@ public class PolicyHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "history_id")
     private Long id;
 
-    @Column(nullable = false)
-    private Long eventId;
+    @Column(name = "queue_id", nullable = false)
+    private Long queueId;
 
+    @Column(name = "policy_version", nullable = false)
+    private long policyVersion;
+
+    @Column(name = "admission_rps", nullable = false)
     private int admissionRps;
-    private int admissionConcurrency;
 
-    @Column(nullable = false)
-    private long policyVersion; // 스냅샷 시점의 버전 번호
+    @Column(name = "admission_concurrency", nullable = false)
+    private int admissionConcurrency;
 
     @Column(name = "max_requests_per_second", nullable = false)
     private int maxRequestsPerSecond;
@@ -36,33 +40,51 @@ public class PolicyHistory {
     @Column(name = "block_duration_minutes", nullable = false)
     private int blockDurationMinutes;
 
-    @Convert(converter = BlockRulesConverter.class)
-    @Column(columnDefinition = "TEXT")
-    private BlockRules blockRules;
-
-    @Column(length = 20)
+    @Column(name = "gate_mode", length = 20)
     private String gateMode;
 
+    @Convert(converter = BlockRulesConverter.class)
+    @Column(name = "block_rules", columnDefinition = "TEXT")
+    private BlockRules blockRules;
+
+    @Column(name = "token_ttl_seconds", nullable = false)
+    @Builder.Default
+    private int tokenTtlSeconds = 300;
+
+    @Column(name = "trigger_type", nullable = false, length = 20)
+    @Builder.Default
+    private String triggerType = "MANUAL";
+
+    @Column(name = "updated_by_user_id")
     private Long updatedByUserId;
 
-    @Column(length = 50)
+    @Column(name = "updated_by_username", length = 50)
     private String updatedByUsername;
 
     @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt; // 언제 바뀌었는지 기록
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
-    // 스냅샷 객체로 변환
+    public Long getEventId() {
+        return this.queueId;
+    }
+
     public static PolicyHistory from(Policy policy) {
+        return from(policy, "MANUAL");
+    }
+
+    public static PolicyHistory from(Policy policy, String triggerType) {
         return PolicyHistory.builder()
-                .eventId(policy.getEventId())
+                .queueId(policy.getQueueId())
+                .policyVersion(policy.getPolicyVersion())
                 .admissionRps(policy.getAdmissionRps())
                 .admissionConcurrency(policy.getAdmissionConcurrency())
-                .blockRules(policy.getBlockRules())
-                .policyVersion(policy.getPolicyVersion())
                 .maxRequestsPerSecond(policy.getMaxRequestsPerSecond())
                 .blockDurationMinutes(policy.getBlockDurationMinutes())
                 .gateMode(policy.getGateMode())
+                .blockRules(policy.getBlockRules())
+                .tokenTtlSeconds(policy.getTokenTtlSeconds())
+                .triggerType(triggerType != null ? triggerType : "MANUAL")
                 .updatedByUserId(policy.getUpdatedByUserId())
                 .updatedByUsername(policy.getUpdatedByUsername())
                 .build();
