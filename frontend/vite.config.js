@@ -15,23 +15,13 @@ export default defineConfig(({mode}) => {
         bypass: bypassHtml,
     }
 
-    // 고객사 데모 백엔드 (demo-backend) - 포트 8081 (공연 및 이벤트 메타데이터)
-    const demoBackendProxy = {
-        target: env.VITE_DEMO_API_URL || 'http://localhost:8081',
-        changeOrigin: true,
-        bypass: bypassHtml,
-    }
-
     return {
         plugins: [react()],
         server: {
             port: 3031,
             proxy: {
-                // 1. 길목 대기열 플랫폼 전용 엔드포인트 (:8082, context-path: /gilmok-platform)
+                // 길목 대기열 플랫폼 전용 엔드포인트 (:8082, context-path: /gilmok-platform)
                 '/gilmok-platform': platformServerProxy,
-
-                // 2. 공연 및 좌석 정보 (고객사 데모 백엔드 :8081)
-                '/admin/events': demoBackendProxy,
             },
         },
     }

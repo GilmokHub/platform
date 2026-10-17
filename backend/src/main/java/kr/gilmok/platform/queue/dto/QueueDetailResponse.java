@@ -1,5 +1,6 @@
 package kr.gilmok.platform.queue.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import kr.gilmok.platform.queue.entity.Queue;
 
 import java.time.LocalDateTime;
@@ -12,6 +13,11 @@ public record QueueDetailResponse(
         String status,
         LocalDateTime createdAt
 ) {
+    @JsonProperty("eventId")
+    public Long eventId() {
+        return queueId;
+    }
+
     public static QueueDetailResponse from(Queue queue) {
         return new QueueDetailResponse(
                 queue.getId(),

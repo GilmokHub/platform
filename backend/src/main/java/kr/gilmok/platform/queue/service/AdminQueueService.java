@@ -56,4 +56,10 @@ public class AdminQueueService {
                 .map(QueueDetailResponse::from)
                 .toList();
     }
+
+    public QueueDetailResponse getQueue(Long queueId) {
+        Queue queue = queueRepository.findById(queueId)
+                .orElseThrow(() -> new CustomException(QueueErrorCode.QUEUE_NOT_FOUND));
+        return QueueDetailResponse.from(queue);
+    }
 }
