@@ -7,7 +7,15 @@ import java.util.Optional;
 
 public interface PolicyRepository extends JpaRepository<Policy, Long> {
 
-    Optional<Policy> findByEventId(Long eventId);
+    Optional<Policy> findByQueueId(Long queueId);
 
-    boolean existsByEventId(Long eventId);
+    boolean existsByQueueId(Long queueId);
+
+    default Optional<Policy> findByEventId(Long eventId) {
+        return findByQueueId(eventId);
+    }
+
+    default boolean existsByEventId(Long eventId) {
+        return existsByQueueId(eventId);
+    }
 }

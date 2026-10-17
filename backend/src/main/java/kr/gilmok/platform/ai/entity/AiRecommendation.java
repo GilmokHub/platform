@@ -1,8 +1,8 @@
 package kr.gilmok.platform.ai.entity;
 
-import lombok.Builder;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -12,45 +12,66 @@ import java.time.LocalDateTime;
 @Table(name = "ai_recommendations")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class AiRecommendation{
+public class AiRecommendation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "recommendation_id")
     private Long id;
 
-    @Column(nullable = false)
-    private Long eventId; // String -> Long 변경
+    @Column(name = "queue_id", nullable = false)
+    private Long queueId;
 
-    @Column(nullable = false)
-    private Integer inputWindowSec; // 데이터 수집 기준 시간 (예: 60초)
+    @Column(name = "applied", nullable = false)
+    private Boolean applied = false;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String metricsSnapshotJson; // 수집한 메트릭스 맵을 통째로 JSON 저장
+    @Column(name = "applied_policy_version")
+    private Integer appliedPolicyVersion;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String recommendedPolicyJson; // AI가 응답한 정책 DTO를 통째로 JSON 저장
+    @Column(name = "input_window_sec", nullable = false)
+    private Integer inputWindowSec;
 
-    @Column(columnDefinition = "TEXT")
-    private String rationale; // AI 분석 이유
+    @Column(name = "metrics_snapshot_json", columnDefinition = "TEXT", nullable = false)
+    private String metricsSnapshotJson;
 
-    @Column(nullable = false)
-    private Boolean applied = false; // 정책 적용 여부
+    @Column(name = "recommended_policy_json", columnDefinition = "TEXT", nullable = false)
+    private String recommendedPolicyJson;
 
-    private Integer appliedPolicyVersion; // 적용된 정책 버전 (안 썼으면 null)
+    @Column(name = "rationale", columnDefinition = "TEXT")
+    private String rationale;
 
-    @Column(nullable = false)
-    private Long createdByUserId; // 요청한 관리자 ID
+    @Column(name = "created_by_user_id", nullable = false)
+    private Long createdByUserId;
 
-    @Column(updatable = false)
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    public Long getEventId() {
+        return this.queueId;
+    }
+
     @Builder
-    public AiRecommendation(Long eventId, Integer inputWindowSec, String metricsSnapshotJson, String recommendedPolicyJson, String rationale, Long createdByUserId) {
-        this.eventId = eventId; // ✅ 이 줄이 누락되어 있었다면 꼭 추가하세요!
+    public AiRecommendation(Long queueId, Integer inputWindowSec, String metricsSnapshotJson,
+                            String recommendedPolicyJson, String rationale, Long createdByUserId) {
+        this.queueId = queueId;
         this.inputWindowSec = inputWindowSec;
         this.metricsSnapshotJson = metricsSnapshotJson;
         this.recommendedPolicyJson = recommendedPolicyJson;
         this.rationale = rationale;
         this.createdByUserId = createdByUserId;
+        this.applied = false;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void markAsApplied(int policyVersion) {
+        this.applied = true;
+        this.appliedPolicyVersion = policyVersion;
+    }
+
+    public static class AiRecommendationBuilder {
+        public AiRecommendationBuilder eventId(Long eventId) {
+            this.queueId = eventId;
+            return this;
+        }
     }
 }

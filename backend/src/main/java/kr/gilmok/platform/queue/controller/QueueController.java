@@ -44,14 +44,10 @@ public class QueueController {
         String username = "user_" + userId;
         String eventId = request.getEventId();
 
-        // 1. 정책 조회 (PolicyFilter attribute 또는 Redis 직접 조회)
+        // 1. 정책 조회 (PolicyFilter attribute 또는 Redis/캐시 직접 조회)
         PolicyCacheDto policy = (PolicyCacheDto) httpRequest.getAttribute(PolicyFilter.POLICY_CACHE_ATTR);
         if (policy == null) {
-            try {
-                Long eventIdLong = Long.parseLong(eventId);
-                policy = policyCacheRepository.find(eventIdLong).orElse(null);
-            } catch (NumberFormatException ignored) {
-            }
+            policy = policyCacheRepository.findByKey(eventId).orElse(null);
         }
 
         // 2. 동적 트래픽 제어 분기

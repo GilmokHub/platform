@@ -8,6 +8,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface PolicyHistoryRepository extends JpaRepository<PolicyHistory, Long> {
-    Page<PolicyHistory> findByEventIdOrderByCreatedAtDescIdDesc(Long eventId, Pageable pageable);
-    Optional<PolicyHistory> findByIdAndEventId(Long id, Long eventId);
+
+    Page<PolicyHistory> findByQueueIdOrderByCreatedAtDescIdDesc(Long queueId, Pageable pageable);
+
+    Optional<PolicyHistory> findByIdAndQueueId(Long id, Long queueId);
+
+    default Page<PolicyHistory> findByEventIdOrderByCreatedAtDescIdDesc(Long eventId, Pageable pageable) {
+        return findByQueueIdOrderByCreatedAtDescIdDesc(eventId, pageable);
+    }
+
+    default Optional<PolicyHistory> findByIdAndEventId(Long id, Long eventId) {
+        return findByIdAndQueueId(id, eventId);
+    }
 }

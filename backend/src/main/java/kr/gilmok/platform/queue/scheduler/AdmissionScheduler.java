@@ -46,10 +46,6 @@ public class AdmissionScheduler {
 
         for (String eventIdStr : openEvents) {
             String eventId = eventIdStr;
-            Long eventIdLong;
-            try {
-                eventIdLong = Long.parseLong(eventId);
-            } catch (NumberFormatException e) { continue; }
             String lockValue = UUID.randomUUID().toString();
             boolean locked = false;
             try {
@@ -64,7 +60,7 @@ public class AdmissionScheduler {
 
                 int rps = defaultAdmissionRps;
                 int maxConcurrency = 0;
-                Optional<PolicyCacheDto> policyOpt = policyCacheRepository.find(eventIdLong);
+                Optional<PolicyCacheDto> policyOpt = policyCacheRepository.findByKey(eventId);
                 if (policyOpt.isPresent() && policyOpt.get().exists()) {
                     PolicyCacheDto policy = policyOpt.get();
                     if (ROUTING_DISABLED.equals(policy.gateMode())) {
