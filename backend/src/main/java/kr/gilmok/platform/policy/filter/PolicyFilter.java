@@ -220,22 +220,22 @@ public class PolicyFilter extends OncePerRequestFilter {
     }
 
     /**
-     * eventId 추출. POST는 body 우선. query와 body 둘 다 있으면 불일치 시 400.
+     * eventId/queueCode 추출 후 내부 queueId(Long)로 변환. POST는 body 우선. query와 body 둘 다 있으면 불일치 시 400.
      */
     private Long extractEventId(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        Long fromQuery = parseEventIdParam(request.getParameter("eventId"));
+        String fromQuery = extractEventKeyParam(request.getParameter("eventId"));
 
         boolean isPostWithBody = "POST".equalsIgnoreCase(request.getMethod())
                 && resolvePath(request).startsWith(QUEUE_REGISTER_PATH);
 
-        Long fromBody = null;
+        String fromBody = null;
         if (isPostWithBody && request instanceof CachedBodyHttpServletRequestWrapper wrapper) {
             try {
                 byte[] body = wrapper.getInputStream().readAllBytes();
                 if (body.length > 0) {
                     JsonNode node = objectMapper.readTree(body);
                     if (node.has("eventId")) {
-                        fromBody = parseEventIdNode(node.get("eventId"));
+                        fromBody = extractEventKeyNode(node.get("eventId"));
                     }
                 }
             } catch (Exception e) {
@@ -244,26 +244,23 @@ public class PolicyFilter extends OncePerRequestFilter {
             }
         }
 
+        String rawKey = fromQuery;
         if (fromBody != null) {
             if (fromQuery != null && !fromBody.equals(fromQuery)) {
                 sendError(response, 400, "eventId mismatch: query and body must match");
                 return null;
             }
-            return fromBody;
+            rawKey = fromBody;
         }
 
-        return fromQuery;
+        return policyCacheRepository.resolveQueueId(rawKey);
     }
 
-    private Long parseEventIdParam(String value) {
+    private String extractEventKeyParam(String value) {
         if (value == null || value.isBlank()) {
             return null;
         }
-        try {
-            return Long.parseLong(value.trim());
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return value.trim();
     }
 
     private RuleCheckResult blockedByRules(Long eventId,
@@ -533,13 +530,13 @@ public class PolicyFilter extends OncePerRequestFilter {
         );
     }
 
-    private Long parseEventIdNode(JsonNode node) {
+    private String extractEventKeyNode(JsonNode node) {
         if (node == null || node.isNull()) {
             return null;
         }
 
         if (node.isNumber()) {
-            return node.asLong();
+            return String.valueOf(node.asLong());
         }
 
         if (node.isTextual()) {
@@ -547,12 +544,7 @@ public class PolicyFilter extends OncePerRequestFilter {
             if (value == null || value.isBlank()) {
                 return null;
             }
-
-            try {
-                return Long.parseLong(value.trim());
-            } catch (NumberFormatException e) {
-                return null;
-            }
+            return value.trim();
         }
 
         return null;

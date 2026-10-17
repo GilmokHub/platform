@@ -83,6 +83,33 @@ class AdminQueueServiceTest {
         }
 
         @Test
+        @DisplayName("queue_code를 입력하지 않고 대기열을 생성할 때(조건), q_ 접두사를 가진 랜덤 식별 키가 자동 발급되어야 한다(기대 결과)")
+        void createQueue_WithoutQueueCode_GeneratesRandomKey() {
+            // Given
+            Long tenantId = 1L;
+            Tenant tenant = Tenant.builder()
+                    .companyName("테스트 고객사")
+                    .adminEmail("test@gilmok.kr")
+                    .apiKeyHash("test-api-key-hash")
+                    .build();
+
+            QueueCreateRequest request = new QueueCreateRequest("랜덤 키 대기열", null);
+
+            given(tenantRepository.findById(tenantId)).willReturn(Optional.of(tenant));
+            given(queueRepository.existsByQueueCode(any())).willReturn(false);
+            given(queueRepository.save(any(Queue.class))).willAnswer(invocation -> invocation.getArgument(0));
+
+            // When
+            QueueDetailResponse response = adminQueueService.createQueue(tenantId, request);
+
+            // Then
+            assertThat(response).isNotNull();
+            assertThat(response.queueCode()).startsWith("q_").hasSize(18);
+            assertThat(response.name()).isEqualTo("랜덤 키 대기열");
+            verify(policyRepository).save(any());
+        }
+
+        @Test
         @DisplayName("이미 존재하는 queue_code로 대기열 생성을 요청할 때(조건), 비즈니스 예외가 발생하며 저장이 거부되어야 한다(기대 결과)")
         void createQueue_DuplicateCode_ThrowsException() {
             // Given

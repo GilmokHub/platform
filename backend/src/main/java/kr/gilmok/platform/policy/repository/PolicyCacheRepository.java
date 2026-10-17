@@ -9,6 +9,8 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import io.lettuce.core.RedisCommandTimeoutException;
 import kr.gilmok.platform.policy.dto.PolicyCacheDto;
 import kr.gilmok.platform.policy.entity.Policy;
+import kr.gilmok.platform.queue.entity.Queue;
+import kr.gilmok.platform.queue.repository.QueueRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.QueryTimeoutException;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +35,7 @@ public class PolicyCacheRepository {
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
     private final PolicyRepository policyRepository;
+    private final QueueRepository queueRepository;
     private final CircuitBreakerRegistry circuitBreakerRegistry; // ✅ 추가
 
     private final long ttlSecondsPositive;
@@ -42,6 +45,7 @@ public class PolicyCacheRepository {
     private final Semaphore dbFallbackSemaphore;
 
     private final Cache<Long, PolicyCacheDto> localCache;
+    private final Cache<String, Long> queueCodeToIdCache;
 
     private final ConcurrentHashMap<Long, CompletableFuture<Optional<PolicyCacheDto>>> inFlight =
             new ConcurrentHashMap<>();
@@ -50,6 +54,7 @@ public class PolicyCacheRepository {
             RedisTemplate<String, String> redisTemplate,
             ObjectMapper objectMapper,
             PolicyRepository policyRepository,
+            QueueRepository queueRepository,
             CircuitBreakerRegistry circuitBreakerRegistry, // ✅ 추가
             @Value("${policy.cache.ttl-hours:1}") long ttlHours,
             @Value("${policy.cache.negative-ttl-minutes:5}") long negativeTtlMinutes,
@@ -61,6 +66,7 @@ public class PolicyCacheRepository {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.policyRepository = policyRepository;
+        this.queueRepository = queueRepository;
         this.circuitBreakerRegistry = circuitBreakerRegistry; // ✅ 추가
         this.ttlSecondsPositive = ttlHours * 3600L;
         this.ttlSecondsNegative = negativeTtlMinutes * 60L;
@@ -71,6 +77,51 @@ public class PolicyCacheRepository {
                 .maximumSize(localCacheMaximumSize)
                 .expireAfterWrite(Duration.ofSeconds(localCacheTtlSeconds))
                 .build();
+
+        this.queueCodeToIdCache = Caffeine.newBuilder()
+                .maximumSize(localCacheMaximumSize)
+                .expireAfterWrite(Duration.ofMinutes(10))
+                .build();
+    }
+
+    /**
+     * 외부 요청의 eventKey(queue_code 문자열 또는 숫자 queue_id)를 기반으로 정책을 조회합니다.
+     */
+    public Optional<PolicyCacheDto> findByKey(String eventKey) {
+        Long queueId = resolveQueueId(eventKey);
+        if (queueId == null) {
+            return Optional.empty();
+        }
+        return find(queueId);
+    }
+
+    public Long resolveQueueId(String eventKey) {
+        if (eventKey == null || eventKey.isBlank()) {
+            return null;
+        }
+        String trimmed = eventKey.trim();
+        try {
+            return Long.parseLong(trimmed);
+        } catch (NumberFormatException ignored) {
+            Long cachedId = queueCodeToIdCache.getIfPresent(trimmed);
+            if (cachedId != null) {
+                return cachedId > 0 ? cachedId : null;
+            }
+            try {
+                Optional<Queue> queueOpt = queueRepository.findByQueueCode(trimmed);
+                if (queueOpt.isPresent()) {
+                    Long id = queueOpt.get().getId();
+                    queueCodeToIdCache.put(trimmed, id);
+                    return id;
+                } else {
+                    queueCodeToIdCache.put(trimmed, -1L);
+                    return null;
+                }
+            } catch (Exception e) {
+                log.warn("[PolicyCache] Failed to resolve queueCode to queueId: queueCode={}", trimmed, e);
+                return null;
+            }
+        }
     }
 
     /**

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,14 +31,18 @@ public class AdminQueueService {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new CustomException(QueueErrorCode.TENANT_NOT_FOUND));
 
-        if (queueRepository.existsByQueueCode(request.queueCode())) {
+        String queueCode = (request.queueCode() != null && !request.queueCode().isBlank())
+                ? request.queueCode().trim()
+                : generateUniqueQueueCode();
+
+        if (queueRepository.existsByQueueCode(queueCode)) {
             throw new CustomException(QueueErrorCode.QUEUE_CODE_DUPLICATED);
         }
 
         Queue queue = Queue.builder()
                 .tenant(tenant)
                 .name(request.name())
-                .queueCode(request.queueCode())
+                .queueCode(queueCode)
                 .status("ACTIVE")
                 .build();
 
@@ -46,6 +51,16 @@ public class AdminQueueService {
         policyRepository.save(defaultPolicy);
 
         return QueueDetailResponse.from(savedQueue);
+    }
+
+    private String generateUniqueQueueCode() {
+        for (int i = 0; i < 5; i++) {
+            String candidate = "q_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
+            if (!queueRepository.existsByQueueCode(candidate)) {
+                return candidate;
+            }
+        }
+        return "q_" + UUID.randomUUID().toString().replace("-", "");
     }
 
     public List<QueueDetailResponse> getQueuesByTenant(Long tenantId) {
