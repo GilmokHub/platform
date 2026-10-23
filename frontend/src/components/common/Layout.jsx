@@ -40,10 +40,10 @@ export default function Layout() {
           <div className="d-flex align-items-center gap-3">
             <span className="badge bg-success">Platform Connected (:8082)</span>
             <a
-              href="http://localhost:3030"
+              href={import.meta.env.VITE_DEMO_SERVER_URL}
               className="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
             >
-              <span>고객사 데모 (3030)</span>
+              <span>고객사 데모</span>
               <span className="small">→</span>
             </a>
             <button

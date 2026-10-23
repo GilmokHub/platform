@@ -12,7 +12,6 @@ const DEFAULT_SPEC = {
     replicaCount: '',
 }
 
-// ✅ 이슈1: eventId별로 키 분리
 const getSpecStorageKey = (eventId) => `ai_recommendation_server_spec_${eventId}`
 
 const loadSavedSpec = (eventId) => {
@@ -34,14 +33,14 @@ export default function AIRecommendation() {
     const [loading, setLoading] = useState(false)
     const [applying, setApplying] = useState(false)
     const [aiData, setAiData] = useState(null)
-    const [serverSpec, setServerSpec] = useState(() => loadSavedSpec(eventId)) // ✅ 이슈1
+    const [serverSpec, setServerSpec] = useState(() => loadSavedSpec(eventId))
     const [specError, setSpecError] = useState('')
 
     const handleSpecChange = (e) => {
         const { name, value } = e.target
         setServerSpec(prev => {
             const updated = { ...prev, [name]: value }
-            localStorage.setItem(getSpecStorageKey(eventId), JSON.stringify(updated)) // ✅ 이슈1
+            localStorage.setItem(getSpecStorageKey(eventId), JSON.stringify(updated))
             return updated
         })
     }
