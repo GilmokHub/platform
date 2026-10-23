@@ -1,0 +1,21 @@
+{
+  "name": "@gilmokhub/sdk",
+  "version": "0.1.0",
+  "description": "Gilmok Queue SaaS Client React SDK",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  }
+}

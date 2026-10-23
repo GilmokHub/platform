@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: platform-backend
+  profiles:
+    active: dev # 기본은 dev로 실행 (운영에선 -Dspring.profiles.active=prod 로 덮어쓰기)
+  data:
+    redis:
+      ssl:
+        enabled: true
+      timeout: 2000ms
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 30
+          max-idle: 15
+          min-idle: 5
+          max-wait: 1000ms
+        shutdown-timeout: 200ms
+
+server:
+  port: 8082
+  servlet:
+    context-path: /gilmok-platform
+  forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: x-forwarded-for
+      protocol-header: x-forwarded-proto
+
+# 큐 관련 설정도 공통이라면 여기에 (환경별로 다르면 아래로 이동)
+queue:
+  admission-rps: ${QUEUE_ADMISSION_RPS:10}
+  default-event-id: 1
+  admitted-ttl-seconds: ${QUEUE_ADMITTED_TTL_SECONDS:300}
+  grace-period-seconds: ${QUEUE_GRACE_PERIOD_SECONDS:180}
+  rate-limit:
+    requests-per-second: ${QUEUE_RATE_LIMIT_RPS:10}
+    window-ms: ${QUEUE_RATE_LIMIT_WINDOW_MS:1000}
+
+
+app:
+  jwt:
+    issuer: https://platform.gilmok.kr
+    key-id: gilmok-key-2026a
+    private-key: ${PLATFORM_JWT_PRIVATE_KEY:}
+    public-key: ${PLATFORM_JWT_PUBLIC_KEY:}
+  admin:
+    keys:
+      master: ${PLATFORM_ADMIN_KEY_MASTER:}
+      demo: ${PLATFORM_ADMIN_KEY_DEMO:}
+      client2: ${PLATFORM_ADMIN_KEY_CLIENT2:}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics # 메트릭은 항상 노출
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true # p95, p99 백분위수 히스토그램 활성화
+    tags:
+      application: ${spring.application.name}
+resilience4j:
+  circuitbreaker:
+    instances:
+      redis-admission:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 3
+      redis-policy-cache:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+      redis-queue:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+        ignore-exceptions:
+          - kr.gilmok.platform.global.exception.CustomException
+          - java.lang.IllegalArgumentException
+      redis-queue-verify:
+        # verifyQueueAccess() 단독 사용
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+        permitted-number-of-calls-in-half-open-state: 2
+        ignore-exceptions:
+          - kr.gilmok.platform.global.exception.CustomException
