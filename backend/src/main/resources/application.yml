@@ -6,9 +6,9 @@ spring:
   data:
     redis:
       ssl:
-        enabled: true       # ✅ ssl은 여기까지
-      timeout: 2000ms       # ✅ redis 바로 하위 (ssl 밖으로 빼야 함)
-      lettuce: # ✅ redis 바로 하위 (ssl 밖으로 빼야 함)
+        enabled: true
+      timeout: 2000ms
+      lettuce:
         pool:
           enabled: true
           max-active: 30
@@ -67,17 +67,17 @@ management:
 resilience4j:
   circuitbreaker:
     instances:
-      redis-admission:          # 기존
+      redis-admission:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
-      redis-policy-cache:       # ✅ 새로 추가
+      redis-policy-cache:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 2
-      redis-queue:              # ✅ 새로 추가
+      redis-queue:
         sliding-window-size: 10
         failure-rate-threshold: 50
         wait-duration-in-open-state: 10s
