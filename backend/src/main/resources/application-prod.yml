@@ -29,7 +29,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate # 운영에선 스키마 변경 금지
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update} # 운영 자동 스키마 생성 지원 (기본값 update)
     properties:
       hibernate:
         format_sql: false # 운영 로그 깔끔하게
