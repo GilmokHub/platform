@@ -8,9 +8,9 @@ export default defineConfig(({mode}) => {
         if (req.headers.accept?.includes('text/html')) return '/index.html'
     }
 
-    // 길목 대기열 플랫폼 코어 서버 (backend) - 포트 8082
+    // 길목 대기열 플랫폼 코어 서버 로컬 프록시 (포트 8082, context-path: /gilmok-platform)
     const platformServerProxy = {
-        target: env.VITE_QUEUE_API_URL || 'http://localhost:8082',
+        target: env.VITE_PLATFORM_PROXY_TARGET,
         changeOrigin: true,
         bypass: bypassHtml,
     }

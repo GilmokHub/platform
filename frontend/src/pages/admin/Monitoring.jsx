@@ -3,11 +3,11 @@ import { useNavigate, useParams } from 'react-router-dom'
 export default function Monitoring() {
   const navigate = useNavigate()
   const { eventId } = useParams()
-  const GRAFANA_BASE_URL = (import.meta.env.VITE_GRAFANA_BASE_URL || '')
+  const GRAFANA_BASE_URL = (import.meta.env.VITE_GRAFANA_BASE_URL)
       .trim()
       .replace(/\/+$/, '')
 
-  const DASH_UID = (import.meta.env.VITE_GRAFANA_DASHBOARD_UID || 'adtwdpl').trim()
+  const DASH_UID = (import.meta.env.VITE_GRAFANA_DASHBOARD_UID).trim()
 
   return (
     <div className="d-flex flex-column gap-4">

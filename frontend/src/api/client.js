@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL || ''
+const API_BASE = import.meta.env.VITE_API_BASE_URL
 export const PASSKEY_STORAGE_KEY = 'gilmok_admin_passkey'
 export const AUTH_FAILED_EVENT = 'gilmok-admin-auth-failed'
 
