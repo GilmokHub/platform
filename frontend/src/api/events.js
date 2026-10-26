@@ -1,13 +1,13 @@
 import { api } from './client'
 
 export function getEvents() {
-  return api.get('/gilmok-platform/admin/queues')
+  return api.get('/admin/queues')
 }
 
 export function getEvent(eventId) {
-  return api.get(`/gilmok-platform/admin/queues/${eventId}`)
+  return api.get(`/admin/queues/${eventId}`)
 }
 
 export function createQueue(payload) {
-  return api.post('/gilmok-platform/admin/queues', payload)
+  return api.post('/admin/queues', payload)
 }
