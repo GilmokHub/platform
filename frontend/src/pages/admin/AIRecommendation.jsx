@@ -71,7 +71,7 @@ export default function AIRecommendation() {
                 }
                 : {}
 
-            const data = await api.post(`/gilmok-platform/admin/events/${eventId}/recommendation`, body)
+            const data = await api.post(`/admin/events/${eventId}/recommendation`, body)
             setAiData(data)
         } catch (error) {
             console.error('AI 분석 실패:', error)
@@ -108,7 +108,7 @@ export default function AIRecommendation() {
                 }
             }
 
-            await api.put(`/gilmok-platform/admin/events/${eventId}/policy`, {
+            await api.put(`/admin/events/${eventId}/policy`, {
                 admissionRps: aiData.recommendedAdmissionRps,
                 admissionConcurrency,
                 blockRules,
